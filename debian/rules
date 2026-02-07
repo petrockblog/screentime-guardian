@@ -32,5 +32,6 @@ override_dh_strip:
 	# Skip strip - Go binaries already stripped via -s -w ldflags
 
 override_dh_auto_clean:
+	chmod -R u+w .cache 2>/dev/null || true
 	rm -rf .cache screentime-guardian
 	dh_auto_clean

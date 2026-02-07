@@ -104,7 +104,7 @@ Users can install directly from GitHub releases:
 
 ```bash
 # Download
-wget https://github.com/florian/screentime-guardian/releases/download/v1.0.0/screentime-guardian_1.0.0-1_amd64.deb
+wget https://github.com/petrockblog/screentime-guardian/releases/download/v1.0.0/screentime-guardian_1.0.0-1_amd64.deb
 
 # Install with dependencies
 sudo apt-get install -f ./screentime-guardian_1.0.0-1_amd64.deb

@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/florian/screentime-guardian/internal/storage"
+	"github.com/petrockblog/screentime-guardian/internal/storage"
 )
 
 func TestSchedulerBasics(t *testing.T) {

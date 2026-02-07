@@ -9,8 +9,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/florian/screentime-guardian/internal/dbus"
-	"github.com/florian/screentime-guardian/internal/storage"
+	"github.com/petrockblog/screentime-guardian/internal/dbus"
+	"github.com/petrockblog/screentime-guardian/internal/storage"
 )
 
 // --- Page handlers ---

@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Florian <florian@example.com>
 Build-Depends: debhelper-compat (= 13), golang-go (>= 1.21), dh-golang
 Standards-Version: 4.6.0
-Homepage: https://github.com/florian/screentime-guardian
+Homepage: https://github.com/petrockblog/screentime-guardian
 
 Package: screentime-guardian
 Architecture: amd64 arm64

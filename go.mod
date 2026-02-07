@@ -1,4 +1,4 @@
-module github.com/florian/screentime-guardian
+module github.com/petrockblog/screentime-guardian
 
 go 1.25.4
 

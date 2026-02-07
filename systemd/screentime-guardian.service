@@ -1,6 +1,6 @@
 [Unit]
 Description=Screentime Guardian Daemon
-Documentation=https://github.com/florian/screentime-guardian
+Documentation=https://github.com/petrockblog/screentime-guardian
 After=network.target dbus.service graphical.target
 Wants=network-online.target
 

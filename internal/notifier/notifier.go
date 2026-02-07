@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"strconv"
 
-	"github.com/florian/screentime-guardian/internal/dbus"
+	"github.com/petrockblog/screentime-guardian/internal/dbus"
 )
 
 // Notifier is the interface for sending notifications to users

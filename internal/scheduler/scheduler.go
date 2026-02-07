@@ -6,10 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/florian/screentime-guardian/internal/config"
-	"github.com/florian/screentime-guardian/internal/dbus"
-	"github.com/florian/screentime-guardian/internal/notifier"
-	"github.com/florian/screentime-guardian/internal/storage"
+	"github.com/petrockblog/screentime-guardian/internal/config"
+	"github.com/petrockblog/screentime-guardian/internal/dbus"
+	"github.com/petrockblog/screentime-guardian/internal/notifier"
+	"github.com/petrockblog/screentime-guardian/internal/storage"
 )
 
 // Scheduler manages time tracking and enforcement for all users

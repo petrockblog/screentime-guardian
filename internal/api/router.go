@@ -10,10 +10,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"github.com/florian/screentime-guardian/internal/config"
-	"github.com/florian/screentime-guardian/internal/dbus"
-	"github.com/florian/screentime-guardian/internal/notifier"
-	"github.com/florian/screentime-guardian/internal/storage"
+	"github.com/petrockblog/screentime-guardian/internal/config"
+	"github.com/petrockblog/screentime-guardian/internal/dbus"
+	"github.com/petrockblog/screentime-guardian/internal/notifier"
+	"github.com/petrockblog/screentime-guardian/internal/storage"
 )
 
 //go:embed templates/*.html

@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/florian/screentime-guardian/internal/config"
-	"github.com/florian/screentime-guardian/internal/notifier"
-	"github.com/florian/screentime-guardian/internal/storage"
+	"github.com/petrockblog/screentime-guardian/internal/config"
+	"github.com/petrockblog/screentime-guardian/internal/notifier"
+	"github.com/petrockblog/screentime-guardian/internal/storage"
 )
 
 // TestTemplatesParsing tests that templates can be parsed with required functions

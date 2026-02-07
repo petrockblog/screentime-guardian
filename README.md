@@ -26,10 +26,10 @@ Download the latest release for your architecture:
 
 ```bash
 # For AMD64 (Intel/AMD processors)
-wget https://github.com/florian/screentime-guardian/releases/download/v1.0.0/screentime-guardian_1.0.0-1_amd64.deb
+wget https://github.com/petrockblog/screentime-guardian/releases/download/v1.0.0/screentime-guardian_1.0.0-1_amd64.deb
 
 # For ARM64 (Raspberry Pi 4/5)
-wget https://github.com/florian/screentime-guardian/releases/download/v1.0.0/screentime-guardian_1.0.0-1_arm64.deb
+wget https://github.com/petrockblog/screentime-guardian/releases/download/v1.0.0/screentime-guardian_1.0.0-1_arm64.deb
 ```
 
 Install with automatic dependency resolution:
@@ -70,7 +70,7 @@ For development or if you need to build from source:
 
 ```bash
 # Clone the repository
-git clone https://github.com/florian/screentime-guardian
+git clone https://github.com/petrockblog/screentime-guardian
 cd parental-control
 
 # Install dependencies

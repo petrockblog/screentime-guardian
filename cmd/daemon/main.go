@@ -10,13 +10,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/florian/screentime-guardian/internal/api"
-	"github.com/florian/screentime-guardian/internal/config"
-	"github.com/florian/screentime-guardian/internal/dbus"
-	"github.com/florian/screentime-guardian/internal/mdns"
-	"github.com/florian/screentime-guardian/internal/notifier"
-	"github.com/florian/screentime-guardian/internal/scheduler"
-	"github.com/florian/screentime-guardian/internal/storage"
+	"github.com/petrockblog/screentime-guardian/internal/api"
+	"github.com/petrockblog/screentime-guardian/internal/config"
+	"github.com/petrockblog/screentime-guardian/internal/dbus"
+	"github.com/petrockblog/screentime-guardian/internal/mdns"
+	"github.com/petrockblog/screentime-guardian/internal/notifier"
+	"github.com/petrockblog/screentime-guardian/internal/scheduler"
+	"github.com/petrockblog/screentime-guardian/internal/storage"
 )
 
 var Version = "dev"

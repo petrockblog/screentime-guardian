@@ -9,12 +9,22 @@ VERSION := $(shell git describe --tags --always 2>/dev/null || echo "1.0.0")
 BUILD_TIME := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 LDFLAGS := -s -w -X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME)
 
+# Map Debian architecture to Go architecture
+DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
+ifeq ($(DEB_HOST_ARCH),arm64)
+  GOARCH := arm64
+else ifeq ($(DEB_HOST_ARCH),armhf)
+  GOARCH := arm
+else
+  GOARCH := amd64
+endif
+
 %:
 	dh $@
 
 override_dh_auto_build:
 	go mod download
-	GOOS=linux go build -ldflags "$(LDFLAGS)" -o screentime-guardian ./cmd/daemon
+	GOOS=linux GOARCH=$(GOARCH) go build -ldflags "$(LDFLAGS)" -o screentime-guardian ./cmd/daemon
 
 override_dh_auto_install:
 	install -D -m 0755 screentime-guardian debian/screentime-guardian/usr/bin/screentime-guardian
@@ -30,6 +40,12 @@ override_dh_dwz:
 
 override_dh_strip:
 	# Skip strip - Go binaries already stripped via -s -w ldflags
+
+override_dh_makeshlibs:
+	# Skip - Go binaries are statically linked
+
+override_dh_shlibdeps:
+	# Skip - Go binaries are statically linked
 
 override_dh_auto_clean:
 	chmod -R u+w .cache 2>/dev/null || true

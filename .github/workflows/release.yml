@@ -7,103 +7,87 @@ on:
 
 jobs:
   build-and-release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.21'
-      
+
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y debhelper devscripts dpkg-dev dh-golang
-      
-      - name: Get version
+          sudo apt-get install -y build-essential debhelper devscripts dpkg-dev dh-golang
+
+      - name: Extract version from tag
         id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-      
-      - name: Build AMD64 package
         run: |
-          dpkg-buildpackage -us -uc -b -aamd64
+          echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Build AMD64 Debian package
+        run: |
+          # Use dpkg-buildpackage with -d flag to ignore golang-go dependency
+          # since we already have Go installed via actions/setup-go
+          dpkg-buildpackage -us -uc -b -aamd64 -d
           mv ../screentime-guardian_*.deb ./screentime-guardian_${{ steps.version.outputs.VERSION }}_amd64.deb
-      
-      - name: Clean build artifacts
+
+      - name: Build ARM64 Debian package
         run: |
-          rm -rf debian/.debhelper debian/screentime-guardian debian/*.debhelper* debian/files
-          rm -f ../screentime-guardian_*
-      
-      - name: Build ARM64 package
-        run: |
-          dpkg-buildpackage -us -uc -b -aarm64
+          # Clean previous build
+          debian/rules clean
+          # Build for ARM64 with -d flag
+          dpkg-buildpackage -us -uc -b -aarm64 -d
           mv ../screentime-guardian_*.deb ./screentime-guardian_${{ steps.version.outputs.VERSION }}_arm64.deb
-      
+
       - name: Generate checksums
         run: |
           sha256sum screentime-guardian_*.deb > SHA256SUMS
-      
+
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ steps.version.outputs.VERSION }}
+          files: |
+            screentime-guardian_${{ steps.version.outputs.VERSION }}_amd64.deb
+            screentime-guardian_${{ steps.version.outputs.VERSION }}_arm64.deb
+            SHA256SUMS
           body: |
-            Screentime Guardian v${{ steps.version.outputs.VERSION }}
-            
             ## Installation
-            
+
             Download the appropriate package for your architecture:
-            - AMD64 (Intel/AMD): `screentime-guardian_${{ steps.version.outputs.VERSION }}_amd64.deb`
-            - ARM64 (Raspberry Pi): `screentime-guardian_${{ steps.version.outputs.VERSION }}_arm64.deb`
-            
-            Install with:
+
+            **AMD64 (Intel/AMD processors - most desktops and laptops):**
             ```bash
+            wget https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/screentime-guardian_${{ steps.version.outputs.VERSION }}_amd64.deb
             sudo apt-get install -f ./screentime-guardian_${{ steps.version.outputs.VERSION }}_amd64.deb
             ```
-            
-            Then configure and start:
+
+            **ARM64 (Raspberry Pi 4/5, ARM servers):**
             ```bash
-            sudo nano /etc/screentime-guardian/config.yaml
-            sudo systemctl start screentime-guardian
+            wget https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/screentime-guardian_${{ steps.version.outputs.VERSION }}_arm64.deb
+            sudo apt-get install -f ./screentime-guardian_${{ steps.version.outputs.VERSION }}_arm64.deb
             ```
-          draft: false
-          prerelease: false
-      
-      - name: Upload AMD64 Package
-        uses: actions/upload-release-asset@v1
+
+            ## Configuration
+
+            After installation:
+            1. Edit `/etc/screentime-guardian/config.yaml` and set a secure admin password
+            2. Start the service: `sudo systemctl start screentime-guardian`
+            3. Enable auto-start: `sudo systemctl enable screentime-guardian`
+            4. Access the web interface at `http://screentime-guardian.local:8080`
+
+            ## Verification
+
+            Verify package integrity:
+            ```bash
+            sha256sum -c SHA256SUMS
+            ```
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./screentime-guardian_${{ steps.version.outputs.VERSION }}_amd64.deb
-          asset_name: screentime-guardian_${{ steps.version.outputs.VERSION }}_amd64.deb
-          asset_content_type: application/vnd.debian.binary-package
-      
-      - name: Upload ARM64 Package
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./screentime-guardian_${{ steps.version.outputs.VERSION }}_arm64.deb
-          asset_name: screentime-guardian_${{ steps.version.outputs.VERSION }}_arm64.deb
-          asset_content_type: application/vnd.debian.binary-package
-      
-      - name: Upload Checksums
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./SHA256SUMS
-          asset_name: SHA256SUMS
-          asset_content_type: text/plain

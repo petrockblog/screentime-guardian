@@ -1,0 +1,27 @@
+# Screentime Guardian Configuration Example
+
+# Web interface address
+# Use ":8080" to listen on all interfaces
+# Use "127.0.0.1:8080" for localhost only
+listen_addr: ":8080"
+
+# Database location
+database_path: "/var/lib/screentime-guardian/data.db"
+
+# Admin password for web interface
+# IMPORTANT: Set a strong password to protect the interface!
+admin_password: "change-me-to-something-secure"
+
+# Warning intervals (minutes before lockout)
+# Children will see on-screen notifications at these intervals
+warning_intervals:
+  - 5   # 5 minutes warning
+  - 1   # 1 minute warning
+
+# How often to check time limits
+# Lower values = more accurate but more CPU usage
+check_interval: 30s
+
+# Grace period after limit before hard lock
+# Gives children time to save work after the final warning
+grace_period: 1m

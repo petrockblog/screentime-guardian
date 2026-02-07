@@ -1,0 +1,63 @@
+#!/bin/sh
+set -e
+
+# Create default config if it doesn't exist
+if [ ! -f /etc/screentime-guardian/config.yaml ]; then
+    cat > /etc/screentime-guardian/config.yaml <<'EOF'
+# Screentime Guardian Configuration
+
+# Web interface address (use :8080 for all interfaces)
+listen_addr: ":8080"
+
+# Database location
+database_path: "/var/lib/screentime-guardian/data.db"
+
+# Admin password for web interface
+# IMPORTANT: Change this to a secure password!
+admin_password: ""
+
+# Warning intervals (minutes before lockout)
+warning_intervals:
+  - 5
+  - 1
+
+# Check interval for time limits
+check_interval: 30s
+
+# Grace period after final warning
+grace_period: 1m
+EOF
+    chmod 600 /etc/screentime-guardian/config.yaml
+fi
+
+# Ensure correct permissions
+chown root:root /etc/screentime-guardian/config.yaml
+chmod 600 /etc/screentime-guardian/config.yaml
+
+# Display setup message
+cat <<'SETUP_MSG'
+
+╔══════════════════════════════════════════════════════════════╗
+║        Screentime Guardian Installation Complete            ║
+╚══════════════════════════════════════════════════════════════╝
+
+⚠️  IMPORTANT: Configure before starting the service!
+
+1. Edit the configuration file:
+   sudo nano /etc/screentime-guardian/config.yaml
+
+2. Set a secure admin_password (currently empty/insecure)
+
+3. Start the service:
+   sudo systemctl start screentime-guardian
+
+4. Access the web interface:
+   http://localhost:8080 or http://screentime-guardian.local:8080
+
+For more info: https://github.com/florian/screentime-guardian
+
+SETUP_MSG
+
+#DEBHELPER#
+
+exit 0

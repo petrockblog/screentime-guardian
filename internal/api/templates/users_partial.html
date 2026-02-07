@@ -1,0 +1,53 @@
+{{range .}}
+<article class="user-card">
+    <header>
+        <div>
+            <strong>{{.Username}}</strong>
+            {{if .IsLoggedIn}}
+            <span class="badge badge-online">● Online</span>
+            {{else}}
+            <span class="badge badge-offline">○ Offline</span>
+            {{end}}
+        </div>
+        <a href="/users/{{.ID}}">Details →</a>
+    </header>
+    
+    <div class="time-display">
+        {{.RemainingMins}} min remaining
+    </div>
+    
+    <div class="progress-bar">
+        <div class="progress-fill {{if gt .PercentUsed 90}}danger{{else if gt .PercentUsed 75}}warning{{end}}" 
+             style="width: {{.PercentUsed}}%"></div>
+    </div>
+    <small>
+        Used {{.UsedMins}} of {{.DailyLimitMins}} minutes
+        {{if .ExtensionMins}}(+{{.ExtensionMins}} extended){{end}}
+    </small>
+    
+    <div class="quick-actions" style="margin-top: 1rem;">
+        <button class="outline" 
+                hx-post="/api/users/{{.ID}}/extend" 
+                hx-vals='{"minutes": 15}'
+                hx-swap="none"
+                hx-on::after-request="location.reload()">
+            +15 min
+        </button>
+        <button class="outline" 
+                hx-post="/api/users/{{.ID}}/extend" 
+                hx-vals='{"minutes": 30}'
+                hx-swap="none"
+                hx-on::after-request="location.reload()">
+            +30 min
+        </button>
+        {{if .IsLoggedIn}}
+        <button class="outline secondary"
+                hx-post="/api/users/{{.ID}}/lock"
+                hx-swap="none"
+                hx-confirm="Lock {{.Username}}'s screen now?">
+            🔒 Lock
+        </button>
+        {{end}}
+    </div>
+</article>
+{{end}}

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}} - Screentime Guardian</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        .time-big {
+            font-size: 3rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        .extend-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="container">
+        <ul>
+            <li><strong>🛡️ Screentime Guardian</strong></li>
+        </ul>
+        <ul>
+            <li><a href="/">Dashboard</a></li>
+            <li><a href="/users">Users</a></li>
+            <li><a href="/history">History</a></li>
+            <li><a href="/settings">Settings</a></li>
+        </ul>
+    </nav>
+    
+    <main class="container">
+        <nav aria-label="breadcrumb">
+            <ul>
+                <li><a href="/users">Users</a></li>
+                <li>{{.User.Username}}</li>
+            </ul>
+        </nav>
+        
+        <h1>{{.User.Username}}</h1>
+        
+        <div class="grid">
+            <article>
+                <header>Time Remaining Today</header>
+                <div class="time-big">
+                    {{.RemainingMins}} min
+                </div>
+                <p style="text-align: center;">
+                    Used {{.UsedMins}} of {{.User.DailyLimitMins}} minutes
+                    {{if .ExtensionMins}}(+{{.ExtensionMins}} extended){{end}}
+                </p>
+            </article>
+            
+            <article>
+                <header>Quick Extend</header>
+                <div class="extend-buttons">
+                    <button hx-post="/api/users/{{.User.ID}}/extend" 
+                            hx-vals='{"minutes": 5}'
+                            hx-swap="none"
+                            hx-on::after-request="location.reload()">
+                        +5 min
+                    </button>
+                    <button hx-post="/api/users/{{.User.ID}}/extend" 
+                            hx-vals='{"minutes": 15}'
+                            hx-swap="none"
+                            hx-on::after-request="location.reload()">
+                        +15 min
+                    </button>
+                    <button hx-post="/api/users/{{.User.ID}}/extend" 
+                            hx-vals='{"minutes": 30}'
+                            hx-swap="none"
+                            hx-on::after-request="location.reload()">
+                        +30 min
+                    </button>
+                    <button hx-post="/api/users/{{.User.ID}}/extend" 
+                            hx-vals='{"minutes": 60}'
+                            hx-swap="none"
+                            hx-on::after-request="location.reload()">
+                        +1 hour
+                    </button>
+                </div>
+                
+                <form hx-post="/api/users/{{.User.ID}}/extend" 
+                      hx-swap="none"
+                      hx-on::after-request="location.reload()"
+                      style="margin-top: 1rem;">
+                    <div class="grid">
+                        <input type="number" name="minutes" placeholder="Custom minutes" min="1" max="480">
+                        <button type="submit">Add Time</button>
+                    </div>
+                </form>
+            </article>
+        </div>
+        
+        <article>
+            <header>Settings</header>
+            <form hx-put="/api/users/{{.User.ID}}" 
+                  hx-swap="none"
+                  hx-on::after-request="location.reload()">
+                <label>
+                    Daily Limit (minutes)
+                    <input type="number" name="daily_limit_mins" value="{{.User.DailyLimitMins}}" min="1" max="1440">
+                </label>
+                <label>
+                    <input type="checkbox" name="enabled" {{if .User.Enabled}}checked{{end}}>
+                    Enabled (enforce time limits)
+                </label>
+                <button type="submit">Save Settings</button>
+            </form>
+        </article>
+        
+        <article>
+            <header>Usage History (Last 7 Days)</header>
+            {{if not .History}}
+            <p>No usage recorded yet.</p>
+            {{else}}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time Used</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .History}}
+                    <tr>
+                        <td>{{.Date}}</td>
+                        <td>{{printf "%.0f" (divf .UsedSeconds 60)}} minutes</td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+            {{end}}
+        </article>
+        
+        <article>
+            <header>Actions</header>
+            <div class="grid">
+                <button class="secondary"
+                        hx-post="/api/users/{{.User.ID}}/lock"
+                        hx-swap="none"
+                        hx-confirm="Lock {{.User.Username}}'s screen now?">
+                    🔒 Lock Screen Now
+                </button>
+                <button class="contrast"
+                        hx-delete="/api/users/{{.User.ID}}"
+                        hx-swap="none"
+                        hx-confirm="Delete user {{.User.Username}}? This will remove all usage history."
+                        hx-on::after-request="window.location='/users'">
+                    🗑️ Delete User
+                </button>
+            </div>
+        </article>
+    </main>
+</body>
+</html>

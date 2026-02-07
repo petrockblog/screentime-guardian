@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}} - Screentime Guardian</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        :root {
+            --pico-font-size: 16px;
+        }
+        .status-online { color: #22c55e; }
+        .status-offline { color: #94a3b8; }
+        .progress-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #3b82f6;
+            transition: width 0.3s ease;
+        }
+        .progress-fill.warning { background: #f59e0b; }
+        .progress-fill.danger { background: #ef4444; }
+        .user-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .user-card header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-online { background: #dcfce7; color: #166534; }
+        .badge-offline { background: #f1f5f9; color: #475569; }
+        .time-display {
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        .quick-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .quick-actions button {
+            flex: 1;
+            min-width: 80px;
+        }
+        nav ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            gap: 1rem;
+        }
+        .setup-banner {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="container">
+        <ul>
+            <li><strong>🛡️ Screentime Guardian</strong></li>
+        </ul>
+        <ul>
+            <li><a href="/">Dashboard</a></li>
+            <li><a href="/users">Users</a></li>
+            <li><a href="/history">History</a></li>
+            <li><a href="/settings">Settings</a></li>
+        </ul>
+    </nav>
+    
+    <main class="container">
+        {{if .NeedsSetup}}
+        <div class="setup-banner">
+            <strong>⚠️ Setup Required:</strong> No admin password is set. 
+            <a href="/settings">Configure security settings</a> to protect this interface.
+        </div>
+        {{end}}
+        
+        <h1>Dashboard</h1>
+        <p>Current time: <strong>{{.Now}}</strong></p>
+        
+        <div hx-get="/partials/status" hx-trigger="every 30s" hx-swap="innerHTML">
+            {{if not .Users}}
+            <article>
+                <p>No users configured yet. <a href="/users">Add a user</a> to start tracking screen time.</p>
+            </article>
+            {{else}}
+            {{range .Users}}
+            <article class="user-card">
+                <header>
+                    <div>
+                        <strong>{{.Username}}</strong>
+                        {{if .IsLoggedIn}}
+                        <span class="badge badge-online">● Online</span>
+                        {{else}}
+                        <span class="badge badge-offline">○ Offline</span>
+                        {{end}}
+                        {{if not .Enabled}}
+                        <span class="badge" style="background:#fee2e2;color:#991b1b;">Disabled</span>
+                        {{end}}
+                    </div>
+                    <a href="/users/{{.ID}}">Details →</a>
+                </header>
+                
+                <div class="time-display">
+                    {{if .Enabled}}
+                    {{.RemainingMins}} min remaining
+                    {{else}}
+                    No limit
+                    {{end}}
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill {{if gt .PercentUsed 90}}danger{{else if gt .PercentUsed 75}}warning{{end}}" 
+                         style="width: {{.PercentUsed}}%"></div>
+                </div>
+                <small>
+                    Used {{.UsedMins}} of {{.DailyLimitMins}} minutes
+                    {{if .ExtensionMins}}(+{{.ExtensionMins}} extended){{end}}
+                </small>
+                
+                <div class="quick-actions" style="margin-top: 1rem;">
+                    <button class="outline" 
+                            hx-post="/api/users/{{.ID}}/extend" 
+                            hx-vals='{"minutes": 15}'
+                            hx-swap="none"
+                            hx-on::after-request="location.reload()">
+                        +15 min
+                    </button>
+                    <button class="outline" 
+                            hx-post="/api/users/{{.ID}}/extend" 
+                            hx-vals='{"minutes": 30}'
+                            hx-swap="none"
+                            hx-on::after-request="location.reload()">
+                        +30 min
+                    </button>
+                    <button class="outline" 
+                            hx-post="/api/users/{{.ID}}/extend" 
+                            hx-vals='{"minutes": 60}'
+                            hx-swap="none"
+                            hx-on::after-request="location.reload()">
+                        +1 hour
+                    </button>
+                    {{if .IsLoggedIn}}
+                    <button class="outline secondary"
+                            hx-post="/api/users/{{.ID}}/lock"
+                            hx-swap="none"
+                            hx-confirm="Lock {{.Username}}'s screen now?">
+                        🔒 Lock
+                    </button>
+                    {{end}}
+                </div>
+            </article>
+            {{end}}
+            {{end}}
+        </div>
+    </main>
+    
+    <footer class="container">
+        <small>Screentime Guardian for Linux • Auto-refreshes every 30 seconds</small>
+    </footer>
+</body>
+</html>

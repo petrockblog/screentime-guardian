@@ -1,0 +1,20 @@
+Source: screentime-guardian
+Section: admin
+Priority: optional
+Maintainer: Florian <florian@example.com>
+Build-Depends: debhelper-compat (= 13), golang-go (>= 1.21), dh-golang
+Standards-Version: 4.6.0
+Homepage: https://github.com/florian/screentime-guardian
+
+Package: screentime-guardian
+Architecture: amd64 arm64
+Depends: ${misc:Depends}, systemd, dbus, avahi-daemon, libnotify-bin
+Description: Screen time management daemon for Linux Mint
+ A parental control application that enforces per-user screen time limits
+ on Linux systems. Features include:
+  - Per-user daily time limits
+  - Web-based mobile-friendly control interface
+  - On-screen countdown warnings
+  - Time extension capability
+  - Session locking via systemd-logind
+  - mDNS discovery (screentime-guardian.local)

@@ -1,0 +1,35 @@
+# Binaries
+dist/
+*.exe
+screentime-guardian
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test data
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Config with secrets
+config.yaml
+!configs/config.yaml.example
+
+# Debian package build artifacts
+debian/.debhelper/
+debian/screentime-guardian/
+debian/*.debhelper*
+debian/files
+debian/*.substvars
+*.deb
+*.build
+*.buildinfo
+*.changes

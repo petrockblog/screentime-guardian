@@ -1,0 +1,9 @@
+screentime-guardian (1.0.0-1) unstable; urgency=medium
+
+  * Initial release
+  * Per-user time limit enforcement
+  * Web UI for remote management
+  * mDNS discovery support
+  * ARM64 and AMD64 builds
+
+ -- Florian <florian@example.com>  Fri, 07 Feb 2026 12:00:00 +0000

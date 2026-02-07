@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}} - Screentime Guardian</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+</head>
+<body>
+    <nav class="container">
+        <ul>
+            <li><strong>🛡️ Screentime Guardian</strong></li>
+        </ul>
+        <ul>
+            <li><a href="/">Dashboard</a></li>
+            <li><a href="/users">Users</a></li>
+            <li><a href="/history">History</a></li>
+            <li><a href="/settings">Settings</a></li>
+        </ul>
+    </nav>
+    
+    <main class="container">
+        <h1>Settings</h1>
+        
+        <article>
+            <header>Security</header>
+            <form method="post" action="/api/settings/password">
+                <label>
+                    Admin Password
+                    <input type="password" name="password" placeholder="Enter new password">
+                    <small>Protects access to this web interface</small>
+                </label>
+                <label>
+                    Confirm Password
+                    <input type="password" name="password_confirm" placeholder="Confirm password">
+                </label>
+                <button type="submit">Set Password</button>
+            </form>
+        </article>
+        
+        <article>
+            <header>Warning Notifications</header>
+            <p>Children receive on-screen warnings before their time runs out:</p>
+            <ul>
+                {{range .Config.WarningIntervals}}
+                <li>{{.}} minute(s) before lockout</li>
+                {{end}}
+            </ul>
+            <small>Edit the config file to customize warning intervals.</small>
+        </article>
+        
+        <article>
+            <header>System Information</header>
+            <table>
+                <tr>
+                    <td>Listen Address</td>
+                    <td><code>{{.Config.ListenAddr}}</code></td>
+                </tr>
+                <tr>
+                    <td>Database Path</td>
+                    <td><code>{{.Config.DatabasePath}}</code></td>
+                </tr>
+                <tr>
+                    <td>Check Interval</td>
+                    <td>{{.Config.CheckInterval}}</td>
+                </tr>
+            </table>
+        </article>
+        
+        <article>
+            <header>Configuration File</header>
+            <p>The daemon reads configuration from <code>/etc/parental-control/config.yaml</code></p>
+            <details>
+                <summary>Example Configuration</summary>
+                <pre><code>listen_addr: ":8080"
+database_path: "/var/lib/parental-control/data.db"
+admin_password: "your-secure-password"
+warning_intervals:
+  - 5
+  - 1
+check_interval: 30s
+grace_period: 1m</code></pre>
+            </details>
+        </article>
+        
+        <article>
+            <header>mDNS Discovery</header>
+            <p>This interface can be accessed at:</p>
+            <ul>
+                <li><code>http://screentime-guardian.local:8080</code> (when mDNS is enabled)</li>
+                <li>Or use the server's IP address directly</li>
+            </ul>
+            <small>Requires avahi-daemon on the server and Bonjour/mDNS on client devices.</small>
+        </article>
+    </main>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}} - Screentime Guardian</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+    <nav class="container">
+        <ul>
+            <li><strong>🛡️ Screentime Guardian</strong></li>
+        </ul>
+        <ul>
+            <li><a href="/">Dashboard</a></li>
+            <li><a href="/users">Users</a></li>
+            <li><a href="/history">History</a></li>
+            <li><a href="/settings">Settings</a></li>
+        </ul>
+    </nav>
+    
+    <main class="container">
+        <h1>Manage Users</h1>
+        
+        <article>
+            <h3>Add New User</h3>
+            <form hx-post="/api/users" hx-swap="none" hx-on::after-request="location.reload()">
+                <div class="grid">
+                    <label>
+                        Linux Username
+                        <input type="text" name="username" id="new-username" 
+                               placeholder="e.g., child1" required>
+                        <small>Must match an existing Linux user account</small>
+                    </label>
+                    <label>
+                        Daily Limit (minutes)
+                        <input type="number" name="daily_limit_mins" id="new-limit" 
+                               value="120" min="1" max="1440" required>
+                        <small>120 min = 2 hours</small>
+                    </label>
+                </div>
+                <button type="submit">Add User</button>
+            </form>
+        </article>
+        
+        <h2>Configured Users</h2>
+        
+        {{if not .Users}}
+        <p>No users configured yet.</p>
+        {{else}}
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Daily Limit</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Users}}
+                <tr>
+                    <td><a href="/users/{{.ID}}">{{.Username}}</a></td>
+                    <td>{{.DailyLimitMins}} min</td>
+                    <td>
+                        {{if .Enabled}}
+                        <span style="color: #22c55e;">● Enabled</span>
+                        {{else}}
+                        <span style="color: #94a3b8;">○ Disabled</span>
+                        {{end}}
+                    </td>
+                    <td>
+                        <button class="outline small"
+                                onclick="editUser({{.ID}}, '{{.Username}}', {{.DailyLimitMins}}, {{.Enabled}})">
+                            Edit
+                        </button>
+                        <button class="outline secondary small"
+                                hx-delete="/api/users/{{.ID}}"
+                                hx-swap="none"
+                                hx-confirm="Delete user {{.Username}}? This will remove all usage history."
+                                hx-on::after-request="location.reload()">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+        {{end}}
+        
+        <!-- Edit Modal -->
+        <dialog id="edit-modal">
+            <article>
+                <header>
+                    <button aria-label="Close" rel="prev" onclick="document.getElementById('edit-modal').close()"></button>
+                    <h3>Edit User: <span id="edit-username"></span></h3>
+                </header>
+                <form id="edit-form" hx-swap="none" hx-on::after-request="location.reload()">
+                    <input type="hidden" id="edit-id" name="id">
+                    <label>
+                        Daily Limit (minutes)
+                        <input type="number" id="edit-limit" name="daily_limit_mins" min="1" max="1440">
+                    </label>
+                    <label>
+                        <input type="checkbox" id="edit-enabled" name="enabled">
+                        Enabled (enforce time limits)
+                    </label>
+                    <footer>
+                        <button type="button" class="secondary" onclick="document.getElementById('edit-modal').close()">Cancel</button>
+                        <button type="submit">Save Changes</button>
+                    </footer>
+                </form>
+            </article>
+        </dialog>
+    </main>
+    
+    <script>
+        function editUser(id, username, limit, enabled) {
+            document.getElementById('edit-username').textContent = username;
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-limit').value = limit;
+            document.getElementById('edit-enabled').checked = enabled;
+            document.getElementById('edit-form').setAttribute('hx-put', '/api/users/' + id);
+            htmx.process(document.getElementById('edit-form'));
+            document.getElementById('edit-modal').showModal();
+        }
+    </script>
+</body>
+</html>

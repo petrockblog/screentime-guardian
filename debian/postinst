@@ -1,38 +1,11 @@
 #!/bin/sh
 set -e
 
-# Create default config if it doesn't exist
-if [ ! -f /etc/screentime-guardian/config.yaml ]; then
-    cat > /etc/screentime-guardian/config.yaml <<'EOF'
-# Screentime Guardian Configuration
-
-# Web interface address (use :8080 for all interfaces)
-listen_addr: ":8080"
-
-# Database location
-database_path: "/var/lib/screentime-guardian/data.db"
-
-# Admin password for web interface
-# IMPORTANT: Change this to a secure password!
-admin_password: ""
-
-# Warning intervals (minutes before lockout)
-warning_intervals:
-  - 5
-  - 1
-
-# Check interval for time limits
-check_interval: 30s
-
-# Grace period after final warning
-grace_period: 1m
-EOF
+# Ensure correct permissions on config
+if [ -f /etc/screentime-guardian/config.yaml ]; then
+    chown root:root /etc/screentime-guardian/config.yaml
     chmod 600 /etc/screentime-guardian/config.yaml
 fi
-
-# Ensure correct permissions
-chown root:root /etc/screentime-guardian/config.yaml
-chmod 600 /etc/screentime-guardian/config.yaml
 
 # Display setup message
 cat <<'SETUP_MSG'

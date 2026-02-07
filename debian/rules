@@ -19,6 +19,7 @@ override_dh_auto_build:
 override_dh_auto_install:
 	install -D -m 0755 screentime-guardian debian/screentime-guardian/usr/bin/screentime-guardian
 	install -D -m 0644 systemd/screentime-guardian.service debian/screentime-guardian/lib/systemd/system/screentime-guardian.service
+	install -D -m 0600 configs/config.yaml.example debian/screentime-guardian/etc/screentime-guardian/config.yaml
 	install -D -m 0600 configs/config.yaml.example debian/screentime-guardian/usr/share/doc/screentime-guardian/examples/config.yaml
 
 override_dh_auto_test:

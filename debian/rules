@@ -2,6 +2,8 @@
 
 export DH_VERBOSE = 1
 export CGO_ENABLED = 0
+export GOCACHE = $(CURDIR)/.cache/go-build
+export GOMODCACHE = $(CURDIR)/.cache/go-mod
 
 VERSION := $(shell git describe --tags --always 2>/dev/null || echo "1.0.0")
 BUILD_TIME := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -11,6 +13,7 @@ LDFLAGS := -X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME)
 	dh $@
 
 override_dh_auto_build:
+	go mod download
 	GOOS=linux go build -ldflags "$(LDFLAGS)" -o screentime-guardian ./cmd/daemon
 
 override_dh_auto_install:
@@ -20,3 +23,7 @@ override_dh_auto_install:
 
 override_dh_auto_test:
 	# Skip tests during package build
+
+override_dh_auto_clean:
+	rm -rf .cache screentime-guardian
+	dh_auto_clean

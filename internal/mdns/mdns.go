@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 
@@ -16,13 +17,31 @@ type Service struct {
 }
 
 // Start begins advertising the screentime guardian service via mDNS
-func Start(ctx context.Context, listenAddr string) (*Service, error) {
+// hostname: the mDNS hostname to advertise (without .local suffix)
+//           if empty, uses "screentime-guardian-{system-hostname}"
+func Start(ctx context.Context, listenAddr string, hostname string) (*Service, error) {
 	port := 8080
 	if parts := strings.Split(listenAddr, ":"); len(parts) == 2 {
 		if p, err := strconv.Atoi(parts[1]); err == nil {
 			port = p
 		}
 	}
+
+	// Determine hostname to use
+	if hostname == "" {
+		// Get system hostname
+		sysHostname, err := getSystemHostname()
+		if err != nil {
+			log.Printf("mDNS: Could not determine system hostname: %v", err)
+			sysHostname = "default"
+		}
+		// Create unique hostname
+		hostname = "screentime-guardian-" + sysHostname
+	}
+
+	// Sanitize hostname (remove invalid characters)
+	hostname = strings.ToLower(hostname)
+	hostname = strings.ReplaceAll(hostname, " ", "-")
 
 	// Get local IP addresses for the hostname
 	ips, err := getLocalIPs()
@@ -32,13 +51,13 @@ func Start(ctx context.Context, listenAddr string) (*Service, error) {
 	}
 
 	// Use RegisterProxy to set a custom hostname instead of using the system's hostname
-	// This allows access via http://screentime-guardian.local:8080 regardless of the actual hostname
+	// This allows access via http://{hostname}.local:8080 regardless of the actual hostname
 	server, err := zeroconf.RegisterProxy(
 		"Screentime Guardian",    // Service instance name
 		"_http._tcp",             // Service type
 		"local.",                 // Domain
 		port,                     // Port
-		"screentime-guardian",    // Hostname (creates screentime-guardian.local)
+		hostname,                 // Hostname (creates {hostname}.local)
 		ips,                      // IP addresses
 		[]string{                 // TXT records
 			"version=1.0",
@@ -50,7 +69,7 @@ func Start(ctx context.Context, listenAddr string) (*Service, error) {
 		return nil, err
 	}
 
-	log.Printf("mDNS: Advertising as screentime-guardian.local:%d (IPs: %v)", port, ips)
+	log.Printf("mDNS: Advertising as %s.local:%d (IPs: %v)", hostname, port, ips)
 
 	go func() {
 		<-ctx.Done()
@@ -97,6 +116,19 @@ func getLocalIPs() ([]string, error) {
 	}
 
 	return ips, nil
+}
+
+// getSystemHostname returns the system's hostname (short form)
+func getSystemHostname() (string, error) {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return "machine", err
+	}
+	
+	// Remove domain suffix if present (e.g., "mint-pc.local" -> "mint-pc")
+	hostname = strings.Split(hostname, ".")[0]
+	
+	return hostname, nil
 }
 
 // Stop stops the mDNS advertisement

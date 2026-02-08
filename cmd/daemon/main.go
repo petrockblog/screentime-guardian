@@ -66,7 +66,7 @@ func main() {
 	go sched.Run(context.Background())
 
 	// Start mDNS advertisement
-	mdnsService, err := mdns.Start(context.Background(), cfg.ListenAddr)
+	mdnsService, err := mdns.Start(context.Background(), cfg.ListenAddr, cfg.MDNSHostname)
 	if err != nil {
 		log.Printf("Warning: mDNS advertisement failed: %v", err)
 	}

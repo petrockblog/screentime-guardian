@@ -18,6 +18,11 @@ type Config struct {
 	// AdminPassword is the password for the web interface
 	AdminPassword string `yaml:"admin_password"`
 
+	// MDNSHostname is the hostname advertised via mDNS (e.g., "screentime-guardian")
+	// If empty, defaults to "screentime-guardian-{system-hostname}"
+	// This allows multiple instances in the same network
+	MDNSHostname string `yaml:"mdns_hostname"`
+
 	// WarningIntervals defines when to warn before lockout (in minutes)
 	WarningIntervals []int `yaml:"warning_intervals"`
 

@@ -12,6 +12,12 @@ database_path: "/var/lib/screentime-guardian/data.db"
 # IMPORTANT: Set a strong password to protect the interface!
 admin_password: "change-me-to-something-secure"
 
+# mDNS hostname for network discovery (optional)
+# If not set, defaults to "screentime-guardian-{hostname}" for uniqueness
+# Examples: "kids-pc", "living-room", "screentime-guardian"
+# Access via: http://{mdns_hostname}.local:8080
+# mdns_hostname: "screentime-guardian"
+
 # Warning intervals (minutes before lockout)
 # Children will see on-screen notifications at these intervals
 warning_intervals:

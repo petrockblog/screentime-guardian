@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -65,8 +67,16 @@ func main() {
 	sched := scheduler.New(store, logindClient, notifierChain, cfg)
 	go sched.Run(context.Background())
 
+	// Extract port from listen address for mDNS
+	port := 8080
+	if parts := strings.Split(cfg.ListenAddr, ":"); len(parts) == 2 {
+		if p, err := strconv.Atoi(parts[1]); err == nil {
+			port = p
+		}
+	}
+
 	// Start mDNS advertisement
-	mdnsService, err := mdns.Start(context.Background(), cfg.ListenAddr, cfg.MDNSHostname)
+	mdnsService, err := mdns.Start(context.Background(), cfg.MDNSHostname, strconv.Itoa(port))
 	if err != nil {
 		log.Printf("Warning: mDNS advertisement failed: %v", err)
 	}

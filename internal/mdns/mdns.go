@@ -18,7 +18,8 @@ type Service struct {
 
 // Start begins advertising the screentime guardian service via mDNS
 // hostname: the mDNS hostname to advertise (without .local suffix)
-//           if empty, uses "screentime-guardian-{system-hostname}"
+//
+//	if empty, uses "screentime-guardian-{system-hostname}"
 func Start(ctx context.Context, listenAddr string, hostname string) (*Service, error) {
 	port := 8080
 	if parts := strings.Split(listenAddr, ":"); len(parts) == 2 {
@@ -53,13 +54,13 @@ func Start(ctx context.Context, listenAddr string, hostname string) (*Service, e
 	// Use RegisterProxy to set a custom hostname instead of using the system's hostname
 	// This allows access via http://{hostname}.local:8080 regardless of the actual hostname
 	server, err := zeroconf.RegisterProxy(
-		"Screentime Guardian",    // Service instance name
-		"_http._tcp",             // Service type
-		"local.",                 // Domain
-		port,                     // Port
-		hostname,                 // Hostname (creates {hostname}.local)
-		ips,                      // IP addresses
-		[]string{                 // TXT records
+		"Screentime Guardian", // Service instance name
+		"_http._tcp",          // Service type
+		"local.",              // Domain
+		port,                  // Port
+		hostname,              // Hostname (creates {hostname}.local)
+		ips,                   // IP addresses
+		[]string{ // TXT records
 			"version=1.0",
 			"path=/",
 		},
@@ -124,10 +125,10 @@ func getSystemHostname() (string, error) {
 	if err != nil {
 		return "machine", err
 	}
-	
+
 	// Remove domain suffix if present (e.g., "mint-pc.local" -> "mint-pc")
 	hostname = strings.Split(hostname, ".")[0]
-	
+
 	return hostname, nil
 }
 

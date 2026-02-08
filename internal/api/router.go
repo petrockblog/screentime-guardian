@@ -24,11 +24,12 @@ var staticFS embed.FS
 
 // Server holds the API dependencies
 type Server struct {
-	store    *storage.Storage
-	logind   *dbus.LogindClient
-	notifier *notifier.Chain
-	config   *config.Config
-	tmpl     *template.Template
+	store        *storage.Storage
+	logind       *dbus.LogindClient
+	notifier     *notifier.Chain
+	config       *config.Config
+	tmpl         *template.Template
+	sessionStore *SessionStore
 }
 
 // NewRouter creates a new HTTP router with all routes configured
@@ -50,11 +51,12 @@ func NewRouter(store *storage.Storage, logind *dbus.LogindClient, notifier *noti
 	}
 
 	s := &Server{
-		store:    store,
-		logind:   logind,
-		notifier: notifier,
-		config:   cfg,
-		tmpl:     tmpl,
+		store:        store,
+		logind:       logind,
+		notifier:     notifier,
+		config:       cfg,
+		tmpl:         tmpl,
+		sessionStore: NewSessionStore(),
 	}
 
 	r := chi.NewRouter()
@@ -64,11 +66,9 @@ func NewRouter(store *storage.Storage, logind *dbus.LogindClient, notifier *noti
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Compress(5))
 
-	// Basic auth if password is set
+	// Session-based auth with basic auth fallback
 	if cfg.AdminPassword != "" {
-		r.Use(middleware.BasicAuth("Screentime Guardian", map[string]string{
-			"admin": cfg.AdminPassword,
-		}))
+		r.Use(SessionAuthMiddleware(s.sessionStore, cfg.AdminPassword))
 	}
 
 	// Static files

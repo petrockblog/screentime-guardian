@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -238,26 +239,39 @@ func (s *Server) apiGetStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) apiCreateUser(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Username       string `json:"username"`
-		DailyLimitMins int    `json:"daily_limit_mins"`
+	var username string
+	var dailyLimitMins int
+
+	if isFormRequest(r) {
+		if err := r.ParseForm(); err != nil {
+			jsonError(w, "Invalid form data", http.StatusBadRequest)
+			return
+		}
+		username = r.FormValue("username")
+		dailyLimitMins, _ = strconv.Atoi(r.FormValue("daily_limit_mins"))
+	} else {
+		var req struct {
+			Username       string `json:"username"`
+			DailyLimitMins int    `json:"daily_limit_mins"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			jsonError(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+		username = req.Username
+		dailyLimitMins = req.DailyLimitMins
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		jsonError(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
-
-	if req.Username == "" {
+	if username == "" {
 		jsonError(w, "Username is required", http.StatusBadRequest)
 		return
 	}
 
-	if req.DailyLimitMins <= 0 {
-		req.DailyLimitMins = 120 // Default 2 hours
+	if dailyLimitMins <= 0 {
+		dailyLimitMins = 120 // Default 2 hours
 	}
 
-	user, err := s.store.CreateUser(req.Username, req.DailyLimitMins)
+	user, err := s.store.CreateUser(username, dailyLimitMins)
 	if err != nil {
 		jsonError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -274,17 +288,31 @@ func (s *Server) apiUpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req struct {
-		DailyLimitMins int  `json:"daily_limit_mins"`
-		Enabled        bool `json:"enabled"`
+	var dailyLimitMins int
+	var enabled bool
+
+	if isFormRequest(r) {
+		if err := r.ParseForm(); err != nil {
+			jsonError(w, "Invalid form data", http.StatusBadRequest)
+			return
+		}
+		dailyLimitMins, _ = strconv.Atoi(r.FormValue("daily_limit_mins"))
+		// HTML checkboxes: present in form = checked, absent = unchecked
+		enabled = r.FormValue("enabled") == "on" || r.FormValue("enabled") == "true"
+	} else {
+		var req struct {
+			DailyLimitMins int  `json:"daily_limit_mins"`
+			Enabled        bool `json:"enabled"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			jsonError(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+		dailyLimitMins = req.DailyLimitMins
+		enabled = req.Enabled
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		jsonError(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
-
-	if err := s.store.UpdateUser(id, req.DailyLimitMins, req.Enabled); err != nil {
+	if err := s.store.UpdateUser(id, dailyLimitMins, enabled); err != nil {
 		jsonError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -316,16 +344,26 @@ func (s *Server) apiExtendTime(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req struct {
-		Minutes int `json:"minutes"`
+	var minutes int
+
+	if isFormRequest(r) {
+		if err := r.ParseForm(); err != nil {
+			jsonError(w, "Invalid form data", http.StatusBadRequest)
+			return
+		}
+		minutes, _ = strconv.Atoi(r.FormValue("minutes"))
+	} else {
+		var req struct {
+			Minutes int `json:"minutes"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			jsonError(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+		minutes = req.Minutes
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		jsonError(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
-
-	if req.Minutes <= 0 {
+	if minutes <= 0 {
 		jsonError(w, "Minutes must be positive", http.StatusBadRequest)
 		return
 	}
@@ -336,19 +374,19 @@ func (s *Server) apiExtendTime(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.store.AddTimeExtension(id, req.Minutes, "parent"); err != nil {
+	if err := s.store.AddTimeExtension(id, minutes, "parent"); err != nil {
 		jsonError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// Notify the user
 	ctx := context.Background()
-	s.notifier.SendTimeExtended(ctx, user.Username, req.Minutes)
+	s.notifier.SendTimeExtended(ctx, user.Username, minutes)
 
 	remaining, _ := s.store.GetRemainingMinutes(id)
 	jsonResponse(w, map[string]interface{}{
 		"status":         "extended",
-		"minutes_added":  req.Minutes,
+		"minutes_added":  minutes,
 		"remaining_mins": remaining,
 	})
 }
@@ -398,6 +436,15 @@ func (s *Server) apiUnlockUser(w http.ResponseWriter, r *http.Request) {
 }
 
 // --- Helpers ---
+
+// isFormRequest returns true if the request has form-encoded content type
+// (default for htmx forms) rather than JSON.
+func isFormRequest(r *http.Request) bool {
+	ct := r.Header.Get("Content-Type")
+	return ct == "" ||
+		strings.HasPrefix(ct, "application/x-www-form-urlencoded") ||
+		strings.HasPrefix(ct, "multipart/form-data")
+}
 
 func jsonResponse(w http.ResponseWriter, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")

@@ -20,102 +20,76 @@ A screen time management application for Linux Mint that allows parents to set d
 
 ## Installation
 
-### From Debian Package (Recommended)
+### Step 1: Download the Package
 
-Download the latest release for your architecture:
+Download the latest release for your architecture from the [releases page](https://github.com/petrockblog/screentime-guardian/releases):
 
 ```bash
-# For AMD64 (Intel/AMD processors)
-wget https://github.com/petrockblog/screentime-guardian/releases/download/v1.0.0/screentime-guardian_1.0.0-1_amd64.deb
+# For AMD64 (Intel/AMD - most desktops and laptops)
+wget https://github.com/petrockblog/screentime-guardian/releases/latest/download/screentime-guardian_*_amd64.deb
 
 # For ARM64 (Raspberry Pi 4/5)
-wget https://github.com/petrockblog/screentime-guardian/releases/download/v1.0.0/screentime-guardian_1.0.0-1_arm64.deb
+wget https://github.com/petrockblog/screentime-guardian/releases/latest/download/screentime-guardian_*_arm64.deb
 ```
+
+### Step 2: Install the Package
 
 Install with automatic dependency resolution:
 
-```# Manual Installation (on Linux Mint)
-
 ```bash
-# Copy files to target machine
-scp -r dist/parental-control-linux-amd64 systemd scripts user@mint-pc:~/
-
-# SSH to the machine and install
-ssh user@mint-pc
-sudo ./scripts/install.sh
+sudo apt-get install -f ./screentime-guardian_*_amd64.deb
 ```
 
-**Note**: The Debian package installation method is preferred as it handles dependencies automatically.
-Configure the daemon:
+The installation will:
+- Install the daemon to `/usr/bin/screentime-guardian`
+- Create a default config at `/etc/screentime-guardian/config.yaml`
+- Set up a systemd service
+- Enable mDNS for easy access via `screentime-guardian.local`
+
+### Step 3: Configure Admin Password
+
+**⚠️ IMPORTANT**: The default installation has **no password** set. You must configure one before the service is secure.
+
+Edit the configuration file:
 
 ```bash
 sudo nano /etc/screentime-guardian/config.yaml
-# Set a secure admin_password!
 ```
 
-Start the service:
-
-```bash
-sudo systemctl status screentime-guardian
-sudo systemctl status screentime-guardian
-```
-
-Access the web interface at `http://localhost:8080` or `http://screentime-guardian.local:8080`
-
-### From Source
-
-For development or if you need to build from source:
-
-#### Building (on macOS or Linux)
-
-```bash
-# Clone the repository
-git clone https://github.com/petrockblog/screentime-guardian
-cd parental-control
-
-# Install dependencies
-go mod tidy
-
-# Build for Linux
-./scripts/build.sh
-```
-
-### Installation (on Linux Mint)
-
-```bash
-# Copy files to target machine
-scp -r dist/parental-control-linux-amd64 systemd scripts user@mint-pc:~/
-
-# SSH to the machine and install
-ssh user@mint-pc
-sudo ./scripts/install.sh
-```
-
-### Configuration
-
-Edit `/etc/screentime-guardian/config.yaml`:
+Set a strong admin password:
 
 ```yaml
 listen_addr: ":8080"
 database_path: "/var/lib/screentime-guardian/data.db"
-admin_password: "your-secure-password"  # CHANGE THIS!
+admin_password: "YourSecurePasswordHere"  # ← CHANGE THIS!
 warning_intervals:
   - 5
   - 1
+check_interval: 30s
+grace_period: 1m
 ```
 
-### Start the Service
+### Step 4: Start the Service
 
 ```bash
-sudo systemctl status screentime-guardian
-sudo systemctl status screentime-guardian
+sudo systemctl start screentime-guardian
+sudo systemctl enable screentime-guardian  # Auto-start on boot
+sudo systemctl status screentime-guardian   # Verify it's running
 ```
 
-### Access the Web Interface
+### Step 5: Access the Web Interface
 
-- From the same machine: `http://localhost:8080`
-- From your phone/tablet: `http://screentime-guardian.local:8080`
-- Or use the IP address: `http://192.168.x.x:8080`
+Open your browser and go to:
+
+- **From the same machine**: `http://localhost:8080`
+- **From your phone/tablet**: `http://screentime-guardian.local:8080`
+- **Using IP address**: `http://192.168.x.x:8080` (replace with your machine's IP)
+
+**Login credentials**:
+- **Username**: `admin`
+- **Password**: The password you set in `/etc/screentime-guardian/config.yaml`
+
+If you didn't set a password yet, the interface will be **unprotected** — set one immediately!
 
 ## Usage
 
@@ -179,38 +153,36 @@ type Notifier interface {
 
 To add Telegram support, implement this interface and add it to the notifier chain.
 
-## Development
+## Building from Source (Advanced)
+
+If you need to build from source for development or modifications:
 
 ```bash
-# Run locally (macOS - limited functionality)
+# Clone the repository
+git clone https://github.com/petrockblog/screentime-guardian
+cd screentime-guardian
+
+# Install dependencies
+go mod download
+
+# Build for Linux
+./scripts/build.sh
+
+# Or build .deb packages (requires Linux with dpkg-dev, debhelper)
+./scripts/build-deb.sh
+```
+
+**Development workflow**:
+
+```bash
+# Run locally (macOS - limited functionality, no D-Bus)
 go run ./cmd/daemon -config configs/config.yaml.example
 
 # Run tests
 go test ./...
-
-# Build all platforms
-./scripts/build.sh
-
-# Build Debian packages (requires Linux with dpkg-dev, debhelper, dh-golang)
-./scripts/build-deb.sh
 ```
 
-### Creating a Release
-
-To create a new release with automated .deb packages:
-
-```bash
-# Commit all changes
-git add .
-git commit -m "Release version 1.0.0"
-
-# Create and push tag (triggers GitHub Actions)
-git tag v1.0.0
-git push origin main
-git push origin v1.0.0
-```
-
-GitHub Actions will automatically build AMD64 and ARM64 .deb packages and attach them to the release.
+**Creating a release**: Push a git tag (e.g., `v1.0.1`) to trigger GitHub Actions, which automatically builds and publishes AMD64/ARM64 .deb packages.
 
 ## Troubleshooting
 

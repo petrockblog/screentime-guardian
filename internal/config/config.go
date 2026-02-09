@@ -18,6 +18,11 @@ type Config struct {
 	// AdminPassword is the password for the web interface
 	AdminPassword string `yaml:"admin_password"`
 
+	// TLS configuration for HTTPS
+	EnableTLS   bool   `yaml:"enable_tls"`
+	TLSCertFile string `yaml:"tls_cert_file"`
+	TLSKeyFile  string `yaml:"tls_key_file"`
+
 	// WarningIntervals defines when to warn before lockout (in minutes)
 	WarningIntervals []int `yaml:"warning_intervals"`
 
@@ -32,8 +37,11 @@ type Config struct {
 func Default() *Config {
 	return &Config{
 		ListenAddr:       ":8080",
-		DatabasePath:     "/var/lib/parental-control/data.db",
+		DatabasePath:     "/var/lib/screentime-guardian/data.db",
 		AdminPassword:    "",          // Must be set on first run
+		EnableTLS:        false,       // Disabled by default
+		TLSCertFile:      "/etc/screentime-guardian/server.crt",
+		TLSKeyFile:       "/etc/screentime-guardian/server.key",
 		WarningIntervals: []int{5, 1}, // Warn at 5 minutes and 1 minute
 		CheckInterval:    30 * time.Second,
 		GracePeriod:      1 * time.Minute,

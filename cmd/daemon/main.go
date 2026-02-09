@@ -22,7 +22,7 @@ import (
 var Version = "dev"
 
 func main() {
-	configPath := flag.String("config", "/etc/parental-control/config.yaml", "Path to config file")
+	configPath := flag.String("config", "/etc/screentime-guardian/config.yaml", "Path to config file")
 	flag.Parse()
 
 	log.Printf("Screentime Guardian Daemon %s starting...", Version)
@@ -74,7 +74,7 @@ func main() {
 	// Initialize web API
 	router := api.NewRouter(store, logindClient, notifierChain, cfg)
 
-	// Start HTTP server
+	// Start HTTP/HTTPS server
 	server := &http.Server{
 		Addr:         cfg.ListenAddr,
 		Handler:      router,
@@ -87,9 +87,18 @@ func main() {
 	signal.Notify(done, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
-		log.Printf("Web interface available at http://%s", cfg.ListenAddr)
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("HTTP server error: %v", err)
+		if cfg.EnableTLS {
+			log.Printf("Web interface available at https://%s", cfg.ListenAddr)
+			log.Printf("Using TLS certificate: %s", cfg.TLSCertFile)
+			if err := server.ListenAndServeTLS(cfg.TLSCertFile, cfg.TLSKeyFile); err != nil && err != http.ErrServerClosed {
+				log.Fatalf("HTTPS server error: %v", err)
+			}
+		} else {
+			log.Printf("Web interface available at http://%s", cfg.ListenAddr)
+			log.Printf("⚠️  WARNING: Running without TLS encryption. Consider enabling HTTPS in production.")
+			if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				log.Fatalf("HTTP server error: %v", err)
+			}
 		}
 	}()
 

@@ -12,6 +12,12 @@ database_path: "/var/lib/screentime-guardian/data.db"
 # IMPORTANT: Set a strong password to protect the interface!
 admin_password: "change-me-to-something-secure"
 
+# HTTPS/TLS Configuration (optional but recommended for security)
+# Generate self-signed certificate with: sudo ./scripts/generate-cert.sh
+enable_tls: false
+tls_cert_file: "/etc/screentime-guardian/server.crt"
+tls_key_file: "/etc/screentime-guardian/server.key"
+
 # Warning intervals (minutes before lockout)
 # Children will see on-screen notifications at these intervals
 warning_intervals:

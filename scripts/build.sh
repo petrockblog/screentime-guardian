@@ -42,6 +42,6 @@ echo ""
 ls -lh dist/
 echo ""
 echo "To deploy to Linux Mint:"
-echo "  scp dist/parental-control-linux-amd64 user@target:~/"
+echo "  scp dist/screentime-guardian-linux-amd64 user@target:~/"
 echo "  scp -r systemd scripts user@target:~/"
 echo "  ssh user@target 'sudo ~/scripts/install.sh'"

@@ -56,9 +56,9 @@ sudo apt-get install -f ./dist/screentime-guardian_1.0.0-1_amd64.deb
 systemctl status screentime-guardian
 
 # Check files
-ls -la /usr/local/bin/parental-control
+ls -la /usr/local/bin/screentime-guardian
 ls -la /etc/screentime-guardian/config.yaml
-ls -la /lib/systemd/system/parental-control.service
+ls -la /lib/systemd/system/screentime-guardian.service
 ```
 
 ## Creating a Release on GitHub
@@ -128,11 +128,11 @@ The package automatically installs:
 
 ### File Locations
 
-- Binary: `/usr/local/bin/parental-control`
+- Binary: `/usr/local/bin/screentime-guardian`
 - Config: `/etc/screentime-guardian/config.yaml` (conffile - protected)
 - Database: `/var/lib/screentime-guardian/data.db` (created at runtime)
-- Service: `/lib/systemd/system/parental-control.service`
-- Examples: `/usr/share/doc/parental-control/examples/config.yaml`
+- Service: `/lib/systemd/system/screentime-guardian.service`
+- Examples: `/usr/share/doc/screentime-guardian/examples/config.yaml`
 
 ### Systemd Integration
 
@@ -170,12 +170,12 @@ gpg --keyserver keyserver.ubuntu.com --recv-keys <KEYID>
 
 ### PPA Distribution
 
-For `apt install parental-control` support:
+For `apt install screentime-guardian` support:
 
 1. Create Launchpad account
 2. Upload signed source package
 3. Launchpad builds for all Ubuntu versions
-4. Users add PPA: `sudo add-apt-repository ppa:username/parental-control`
+4. Users add PPA: `sudo add-apt-repository ppa:username/screentime-guardian`
 
 ### Architecture Support
 

@@ -14,8 +14,8 @@ func TestDefault(t *testing.T) {
 		t.Errorf("Expected ListenAddr :8080, got %s", cfg.ListenAddr)
 	}
 
-	if cfg.DatabasePath != "/var/lib/parental-control/data.db" {
-		t.Errorf("Expected DatabasePath /var/lib/parental-control/data.db, got %s", cfg.DatabasePath)
+	if cfg.DatabasePath != "/var/lib/screentime-guardian/data.db" {
+		t.Errorf("Expected DatabasePath /var/lib/screentime-guardian/data.db, got %s", cfg.DatabasePath)
 	}
 
 	if cfg.AdminPassword != "" {

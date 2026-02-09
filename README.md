@@ -22,30 +22,26 @@ A screen time management application for Linux Mint that allows parents to set d
 
 ### From Debian Package (Recommended)
 
-Download the latest release for your architecture:
+Download the latest release for your architecture from the [releases page](https://github.com/petrockblog/screentime-guardian/releases/latest):
 
 ```bash
 # For AMD64 (Intel/AMD processors)
-wget https://github.com/florian/screentime-guardian/releases/download/v1.0.0/screentime-guardian_1.0.0-1_amd64.deb
+wget https://github.com/petrockblog/screentime-guardian/releases/latest/download/screentime-guardian_amd64.deb
 
 # For ARM64 (Raspberry Pi 4/5)
-wget https://github.com/florian/screentime-guardian/releases/download/v1.0.0/screentime-guardian_1.0.0-1_arm64.deb
+wget https://github.com/petrockblog/screentime-guardian/releases/latest/download/screentime-guardian_arm64.deb
 ```
 
 Install with automatic dependency resolution:
 
-```# Manual Installation (on Linux Mint)
-
 ```bash
-# Copy files to target machine
-scp -r dist/parental-control-linux-amd64 systemd scripts user@mint-pc:~/
+# For AMD64
+sudo apt-get install -f ./screentime-guardian_amd64.deb
 
-# SSH to the machine and install
-ssh user@mint-pc
-sudo ./scripts/install.sh
+# For ARM64
+sudo apt-get install -f ./screentime-guardian_arm64.deb
 ```
 
-**Note**: The Debian package installation method is preferred as it handles dependencies automatically.
 Configure the daemon:
 
 ```bash
@@ -56,7 +52,7 @@ sudo nano /etc/screentime-guardian/config.yaml
 Start the service:
 
 ```bash
-sudo systemctl status screentime-guardian
+sudo systemctl start screentime-guardian
 sudo systemctl status screentime-guardian
 ```
 
@@ -70,8 +66,8 @@ For development or if you need to build from source:
 
 ```bash
 # Clone the repository
-git clone https://github.com/florian/screentime-guardian
-cd parental-control
+git clone https://github.com/petrockblog/screentime-guardian
+cd screentime-guardian
 
 # Install dependencies
 go mod tidy
@@ -84,7 +80,7 @@ go mod tidy
 
 ```bash
 # Copy files to target machine
-scp -r dist/parental-control-linux-amd64 systemd scripts user@mint-pc:~/
+scp -r dist/screentime-guardian-linux-amd64 systemd scripts user@mint-pc:~/
 
 # SSH to the machine and install
 ssh user@mint-pc
@@ -99,23 +95,54 @@ Edit `/etc/screentime-guardian/config.yaml`:
 listen_addr: ":8080"
 database_path: "/var/lib/screentime-guardian/data.db"
 admin_password: "your-secure-password"  # CHANGE THIS!
+
+# Enable HTTPS (recommended for production)
+enable_tls: true
+tls_cert_file: "/etc/screentime-guardian/server.crt"
+tls_key_file: "/etc/screentime-guardian/server.key"
+
 warning_intervals:
   - 5
   - 1
 ```
 
+### Enable HTTPS (Recommended)
+
+For secure access over the network, enable HTTPS:
+
+```bash
+# Generate self-signed certificate
+sudo /usr/share/screentime-guardian/generate-cert.sh
+
+# Or use your own certificate
+sudo cp your-cert.crt /etc/screentime-guardian/server.crt
+sudo cp your-key.key /etc/screentime-guardian/server.key
+sudo chmod 600 /etc/screentime-guardian/server.key
+
+# Enable TLS in config.yaml
+sudo nano /etc/screentime-guardian/config.yaml
+# Set: enable_tls: true
+
+# Restart service
+sudo systemctl restart screentime-guardian
+```
+
+**Note**: Self-signed certificates will show a browser warning. Click "Advanced" → "Proceed to site" to continue.
+
 ### Start the Service
 
 ```bash
-sudo systemctl status screentime-guardian
+sudo systemctl start screentime-guardian
 sudo systemctl status screentime-guardian
 ```
 
 ### Access the Web Interface
 
-- From the same machine: `http://localhost:8080`
-- From your phone/tablet: `http://screentime-guardian.local:8080`
-- Or use the IP address: `http://192.168.x.x:8080`
+- From the same machine: `https://localhost:8080` (or `http://localhost:8080` if TLS disabled)
+- From your phone/tablet: `https://screentime-guardian.local:8080`
+- Or use the IP address: `https://192.168.x.x:8080`
+
+**Note**: If using HTTPS with a self-signed certificate, your browser will show a security warning. This is normal - click "Advanced" and "Proceed to site" to continue.
 
 ## Usage
 
@@ -140,15 +167,17 @@ Children see warnings at 5 minutes and 1 minute before lockout, giving them time
 
 - The daemon runs as root to manage user sessions
 - Web interface is protected by HTTP Basic Auth
+- **HTTPS/TLS encryption** for secure remote access (recommended)
 - Config file has restricted permissions (root-only)
 - Children cannot stop or modify the service
+- Self-signed certificates supported for home network use
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────┐
 │           Web Interface (Chi)           │
-│         screentime-guardian.local          │
+│         screentime-guardian.local       │
 └─────────────────┬───────────────────────┘
                   │
 ┌─────────────────▼───────────────────────┐

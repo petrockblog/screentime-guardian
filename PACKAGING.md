@@ -63,35 +63,29 @@ ls -la /lib/systemd/system/parental-control.service
 
 ## Creating a Release on GitHub
 
-### 1. Prepare the Release
+### 1. Create and Push Tag
 
-Update the version in `debian/changelog`:
-
-```bash
-dch -v 1.0.0-1
-# Edit the changelog entry, save, and commit
-```
-
-### 2. Create and Push Tag
+The release process is now fully automated. Simply create and push a version tag:
 
 ```bash
-git add debian/changelog
-git commit -m "Prepare release v1.0.0"
-git tag v1.0.0
-git push origin main
-git push origin v1.0.0
+git tag v1.0.3
+git push origin v1.0.3
 ```
 
-### 3. Automated Build
+**Note**: The GitHub Actions workflow will automatically update `debian/changelog` with the version from the tag. You no longer need to manually update the changelog before releasing.
+
+### 2. Automated Build
 
 GitHub Actions will automatically:
-1. Build AMD64 package
-2. Build ARM64 package
-3. Generate SHA256 checksums
-4. Create GitHub Release
-5. Upload all artifacts
+1. Extract version from the git tag (e.g., `v1.0.3` → `1.0.3`)
+2. Update `debian/changelog` with the new version (`1.0.3-1`)
+3. Build AMD64 package
+4. Build ARM64 package
+5. Generate SHA256 checksums
+6. Create GitHub Release
+7. Upload all artifacts
 
-### 4. Release Assets
+### 3. Release Assets
 
 The release will contain:
 - `screentime-guardian_1.0.0-1_amd64.deb` (Intel/AMD)
@@ -150,6 +144,21 @@ Use semantic versioning with Debian revision:
 - `1.0.1-2`: Version 1.0.1, Debian revision 2 (packaging fix)
 
 Git tags should use `v` prefix: `v1.0.0`, `v1.0.1`, etc.
+
+### Manual Changelog Updates
+
+For local builds, you can still manually update the changelog using:
+
+```bash
+# Update to new version
+DEBFULLNAME="Florian" DEBEMAIL="florian@example.com" \
+dch -v 1.0.3-1 -D unstable "Release version 1.0.3"
+
+# Or use interactive mode
+dch -i
+```
+
+The GitHub release workflow handles this automatically.
 
 ## Future Enhancements
 

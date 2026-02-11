@@ -150,8 +150,8 @@ Git tags should use `v` prefix: `v1.0.0`, `v1.0.1`, etc.
 For local builds, you can still manually update the changelog using:
 
 ```bash
-# Update to new version
-DEBFULLNAME="Florian" DEBEMAIL="florian@example.com" \
+# Update to new version (replace with your name and email)
+DEBFULLNAME="Your Name" DEBEMAIL="your.email@example.com" \
 dch -v 1.0.3-1 -D unstable "Release version 1.0.3"
 
 # Or use interactive mode

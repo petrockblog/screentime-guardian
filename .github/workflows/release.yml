@@ -32,6 +32,14 @@ jobs:
         run: |
           echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
+      - name: Update Debian changelog with tag version
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          # Update debian/changelog with the version from the tag
+          DEBFULLNAME="Florian" DEBEMAIL="florian@example.com" \
+          dch -v "${VERSION}-1" -D unstable "Release version ${VERSION}"
+          cat debian/changelog
+
       - name: Build AMD64 Debian package
         run: |
           # Use dpkg-buildpackage with -d flag to ignore golang-go dependency
@@ -43,7 +51,7 @@ jobs:
         run: |
           # Clean previous build
           debian/rules clean
-          # Build for ARM64 with -d flag
+          # Build for ARM64 with -d flag (changelog already updated)
           dpkg-buildpackage -us -uc -b -aarm64 -d
           mv ../screentime-guardian_*.deb ./screentime-guardian_${{ steps.version.outputs.VERSION }}_arm64.deb
 
